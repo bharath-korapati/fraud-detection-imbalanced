@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+# Let tests import the `fraud` package when run as plain `pytest`.
+pythonpath = ["."]
+testpaths = ["tests"]
