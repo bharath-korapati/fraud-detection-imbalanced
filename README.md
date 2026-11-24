@@ -1,5 +1,9 @@
 # Credit-Card Fraud Detection on Imbalanced Data
 
+[![tests](https://github.com/bharath-korapati/fraud-detection-imbalanced/actions/workflows/ci.yml/badge.svg)](https://github.com/bharath-korapati/fraud-detection-imbalanced/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 Catching rare fraud in 284,807 card transactions with XGBoost, LightGBM,
 anomaly detection, money-based thresholds and SHAP reason codes, plus a
 demonstration of how SMOTE leakage fakes great scores.
