@@ -161,8 +161,14 @@ python run_all.py          # full run, writes reports/results.md + figures
 pytest -q                  # unit tests
 ```
 
+Exact package versions behind the published results: `requirements-lock.txt`.
+
 Without `data/creditcard.csv`, the code falls back to **synthetic** data so the
 tests and CI can run. Those numbers mean nothing and are labeled as such.
+
+## License
+Code: MIT (see `LICENSE`). The dataset is not included and keeps its own
+Kaggle terms.
 
 ## Dataset credit
 *Credit Card Fraud Detection*, collected during a research collaboration

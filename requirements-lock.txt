@@ -1,0 +1,13 @@
+# Exact versions used to produce reports/ (Python 3.13, CPU only).
+# requirements.txt keeps looser minimums so CI can install on Python 3.11.
+imbalanced-learn==0.14.2
+lightgbm==4.7.0
+matplotlib==3.11.2
+numpy==2.5.3
+pandas==3.0.5
+pytest==9.1.1
+scikit-learn==1.9.1
+shap==0.54.1
+tabulate==0.10.0
+torch==2.15.0
+xgboost==3.4.1
