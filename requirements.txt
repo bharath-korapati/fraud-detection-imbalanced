@@ -1,0 +1,11 @@
+numpy>=1.26
+pandas>=2.1
+scikit-learn>=1.4
+imbalanced-learn>=0.12
+xgboost>=2.0
+lightgbm>=4.3
+shap>=0.45
+torch>=2.2
+matplotlib>=3.8
+tabulate>=0.9
+pytest>=8.0
