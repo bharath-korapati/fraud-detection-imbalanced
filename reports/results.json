@@ -1,0 +1,179 @@
+{
+  "source": "real",
+  "rows": 284807,
+  "fraud_rows": 492,
+  "fraud_rate": 0.001727485630620034,
+  "split_sizes": {
+    "train": 170884,
+    "val": 56961,
+    "test": 56962
+  },
+  "split_frauds": {
+    "train": 360,
+    "val": 57,
+    "test": 75
+  },
+  "lazy_baseline_test": {
+    "accuracy": 0.9986833327481479,
+    "recall": 0.0,
+    "pr_auc": 0.001316667251852112
+  },
+  "supervised": {
+    "logistic_regression": {
+      "val": {
+        "pr_auc": 0.7760378312721268,
+        "roc_auc": 0.9737828685308096,
+        "precision": 0.023876404494382022,
+        "recall": 0.8947368421052632,
+        "accuracy": 0.9632906725654395,
+        "flagged": 2136
+      },
+      "test": {
+        "pr_auc": 0.7524820674500422,
+        "roc_auc": 0.9835213669203859,
+        "precision": 0.028274428274428276,
+        "recall": 0.9066666666666666,
+        "accuracy": 0.958849759488782,
+        "flagged": 2405
+      }
+    },
+    "xgboost": {
+      "val": {
+        "pr_auc": 0.7810778152827934,
+        "roc_auc": 0.9793357726524945,
+        "precision": 0.6197183098591549,
+        "recall": 0.7719298245614035,
+        "accuracy": 0.9992977651375503,
+        "flagged": 71
+      },
+      "test": {
+        "pr_auc": 0.7942424508997871,
+        "roc_auc": 0.9784196740907413,
+        "precision": 0.7215189873417721,
+        "recall": 0.76,
+        "accuracy": 0.9992977774656788,
+        "flagged": 79
+      }
+    },
+    "lightgbm": {
+      "val": {
+        "pr_auc": 0.7865057532209844,
+        "roc_auc": 0.9828849943641614,
+        "precision": 0.8301886792452831,
+        "recall": 0.7719298245614035,
+        "accuracy": 0.9996137708256526,
+        "flagged": 53
+      },
+      "test": {
+        "pr_auc": 0.8051939098169073,
+        "roc_auc": 0.9759645144467688,
+        "precision": 0.8169014084507042,
+        "recall": 0.7733333333333333,
+        "accuracy": 0.9994733330992591,
+        "flagged": 71
+      }
+    }
+  },
+  "best_model_by_val_pr_auc": "lightgbm",
+  "threshold": {
+    "model": "lightgbm",
+    "review_cost_usd": 10.0,
+    "chosen_threshold": 0.91,
+    "test_cost_at_0.5": 3347.27,
+    "test_cost_at_chosen": 4254.540000000001,
+    "test_cost_flag_nothing": 7729.26,
+    "test_report_at_0.5": {
+      "pr_auc": 0.8051939098169073,
+      "roc_auc": 0.9759645144467688,
+      "precision": 0.8169014084507042,
+      "recall": 0.7733333333333333,
+      "accuracy": 0.9994733330992591,
+      "flagged": 71
+    },
+    "test_report_at_chosen": {
+      "pr_auc": 0.8051939098169073,
+      "roc_auc": 0.9759645144467688,
+      "precision": 0.9032258064516129,
+      "recall": 0.7466666666666667,
+      "accuracy": 0.9995611109160493,
+      "flagged": 62
+    },
+    "sensitivity": [
+      {
+        "threshold": 0.1,
+        "val_cost": 5343.33,
+        "test_cost": 3642.7400000000002
+      },
+      {
+        "threshold": 0.3,
+        "val_cost": 5084.09,
+        "test_cost": 3405.0499999999997
+      },
+      {
+        "threshold": 0.5,
+        "val_cost": 5004.09,
+        "test_cost": 3347.27
+      },
+      {
+        "threshold": 0.7,
+        "val_cost": 4954.860000000001,
+        "test_cost": 3298.27
+      },
+      {
+        "threshold": 0.9,
+        "val_cost": 4913.16,
+        "test_cost": 3268.27
+      },
+      {
+        "threshold": 0.91,
+        "val_cost": 4903.16,
+        "test_cost": 4254.540000000001
+      },
+      {
+        "threshold": 0.95,
+        "val_cost": 4903.16,
+        "test_cost": 4254.540000000001
+      }
+    ],
+    "fraud_amounts": {
+      "val": {
+        "median": 39.45,
+        "share_below_review_cost": 0.43859649122807015
+      },
+      "test": {
+        "median": 4.69,
+        "share_below_review_cost": 0.6
+      }
+    }
+  },
+  "test_pr_auc_ci95": {
+    "logistic_regression": [
+      0.6397291369498347,
+      0.861659436882783
+    ],
+    "xgboost": [
+      0.7037390397784689,
+      0.8760192347131227
+    ],
+    "lightgbm": [
+      0.7219055988132932,
+      0.885371374740821
+    ]
+  },
+  "unsupervised_test": {
+    "isolation_forest": {
+      "pr_auc": 0.03907995410761861
+    },
+    "autoencoder": {
+      "pr_auc": 0.10715656186972662
+    }
+  },
+  "smote_leakage": {
+    "wrong_pr_auc_mean": 0.9999544329704447,
+    "wrong_pr_auc_std": 4.091679992734848e-05,
+    "right_pr_auc_mean": 0.8644016523327925,
+    "right_pr_auc_std": 0.031854874434062985
+  },
+  "reason_codes_file": "reports/reason_codes_top10.csv",
+  "runtime_seconds": 72.9
+}

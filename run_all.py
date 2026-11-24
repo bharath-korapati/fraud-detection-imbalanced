@@ -72,7 +72,29 @@ def main(csv: str, quick: bool) -> dict:
         "test_report_at_0.5": models.score_report(s.y_test, test_scores[best], 0.5),
         "test_report_at_chosen": models.score_report(s.y_test, test_scores[best], t_best),
     }
+    res["threshold"]["sensitivity"] = [
+        {"threshold": t,
+         "val_cost": threshold.expected_cost(s.y_val, val_scores[best], s.X_val["Amount"], t),
+         "test_cost": threshold.expected_cost(s.y_test, test_scores[best], s.X_test["Amount"], t)}
+        for t in [0.1, 0.3, 0.5, 0.7, 0.9, round(t_best, 3), 0.95]]
+    fa = {k: s.X_val["Amount"][s.y_val == 1] if k == "val" else s.X_test["Amount"][s.y_test == 1]
+          for k in ("val", "test")}
+    res["threshold"]["fraud_amounts"] = {
+        k: {"median": float(v.median()), "share_below_review_cost": float((v < threshold.REVIEW_COST).mean())}
+        for k, v in fa.items()}
     print(f"[3/6] threshold {t_best:.3f} for {best}")
+
+    # Bootstrap 95% CI for test PR-AUC (only a few dozen test frauds -> real uncertainty)
+    rng = np.random.default_rng(0)
+    yt = s.y_test.to_numpy()
+    res["test_pr_auc_ci95"] = {}
+    for name, sc in test_scores.items():
+        boots = []
+        for _ in range(1000):
+            i = rng.integers(0, len(yt), len(yt))
+            if yt[i].sum() > 0:
+                boots.append(average_precision_score(yt[i], sc[i]))
+        res["test_pr_auc_ci95"][name] = [float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))]
 
     # 4. Unsupervised detectors (never see a fraud label in training)
     Xtr, Xte = s.X_train[F], s.X_test[F]
@@ -162,11 +184,12 @@ def write_markdown(r: dict, rc: pd.DataFrame) -> None:
          f"accuracy** on the test set and catches **0** fraud. Its PR-AUC is "
          f"{r['lazy_baseline_test']['pr_auc']:.4f} (= the fraud rate).\n",
          "## 2. Supervised models (test set, threshold 0.5)\n",
-         "| model | PR-AUC | ROC-AUC | precision | recall | accuracy | alarms |",
+         "| model | PR-AUC (95% bootstrap CI) | ROC-AUC | precision | recall | accuracy | alarms |",
          "|---|---|---|---|---|---|---|"]
     for name, d in r["supervised"].items():
         t = d["test"]
-        L.append(f"| {name} | {t['pr_auc']:.4f} | {t['roc_auc']:.4f} | {t['precision']:.3f} | "
+        lo, hi = r["test_pr_auc_ci95"][name]
+        L.append(f"| {name} | {t['pr_auc']:.3f} ({lo:.3f}–{hi:.3f}) | {t['roc_auc']:.4f} | {t['precision']:.3f} | "
                  f"{t['recall']:.3f} | {t['accuracy']:.4f} | {t['flagged']} |")
     th = r["threshold"]
     L += [f"\nBest on validation PR-AUC: **{r['best_model_by_val_pr_auc']}**.\n",
@@ -179,6 +202,13 @@ def write_markdown(r: dict, rc: pd.DataFrame) -> None:
           f"| threshold {th['chosen_threshold']:.3f} (picked on val) | ${th['test_cost_at_chosen']:,.0f} | "
           f"{th['test_report_at_chosen']['precision']:.3f} | {th['test_report_at_chosen']['recall']:.3f} | "
           f"{th['test_report_at_chosen']['flagged']} |",
+          "\n**Sensitivity check:** cost at several thresholds, validation vs test.\n",
+          "| threshold | val cost | test cost |", "|---|---|---|",
+          *[f"| {d['threshold']} | ${d['val_cost']:,.0f} | ${d['test_cost']:,.0f} |" for d in th["sensitivity"]],
+          f"\nMedian fraud amount: ${th['fraud_amounts']['val']['median']:.2f} (val), "
+          f"${th['fraud_amounts']['test']['median']:.2f} (test). Share of frauds smaller than the "
+          f"${th['review_cost_usd']:.0f} review cost: {th['fraud_amounts']['val']['share_below_review_cost']:.0%} (val), "
+          f"{th['fraud_amounts']['test']['share_below_review_cost']:.0%} (test).\n",
           "\n![cost](figures/cost_vs_threshold.png)\n",
           "## 4. Unsupervised detectors (no fraud labels used in training)\n",
           f"Isolation Forest PR-AUC: {r['unsupervised_test']['isolation_forest']['pr_auc']:.4f}  ",

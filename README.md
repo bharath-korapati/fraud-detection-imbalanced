@@ -4,8 +4,44 @@ Catching rare fraud in 284,807 card transactions with XGBoost, LightGBM,
 anomaly detection, money-based thresholds and SHAP reason codes, plus a
 demonstration of how SMOTE leakage fakes great scores.
 
-**Results:** _pending._ Running `python run_all.py` on the real
-`creditcard.csv` writes them to `reports/results.md`, along with figures.
+## Results (real data, newest 20% of transactions as the test set)
+
+Full report: [`reports/results.md`](reports/results.md). Test set: 56,962
+transactions, **75 of them fraud**.
+
+| What | Result |
+|---|---|
+| "Everything is legit" baseline | **99.87% accuracy, 0 fraud caught** |
+| LightGBM (best on validation) | PR-AUC **0.805** (95% CI 0.72–0.89), catches 77% of fraud, 82% of alarms are real fraud |
+| XGBoost / logistic regression | PR-AUC 0.794 / 0.752, with CIs that overlap LightGBM's: **statistically a tie** |
+| SMOTE done wrong vs right (5-fold CV) | **1.000** vs **0.864** PR-AUC: the "perfect" score is leakage |
+| Autoencoder / Isolation Forest (no labels) | PR-AUC 0.107 / 0.039: ~80× / ~30× better than random (0.0013), far below supervised |
+| Cost-tuned threshold | **Did not beat the default 0.5 on test** ($4,255 vs $3,347). See below |
+
+![precision-recall curves](reports/figures/pr_curves.png)
+
+### What surprised me (and what I'd say in an interview)
+1. **The cost-tuned threshold went up, not down.** I expected that "missed fraud
+   is expensive" would push the alarm line lower. But in this data **44–60% of
+   frauds are smaller than the $10 review cost** (median test fraud: $4.69),
+   so checking them costs more than it saves.
+2. **The tuned threshold failed on test.** The cost curve is almost flat from
+   0.3 to 0.9, and the validation optimum (0.910) sat right at a cliff. A single
+   ~$1,000 fraud scored just below 0.91 on test, and missing it is the whole
+   gap. With only 57 frauds in validation, the "best" threshold was mostly noise.
+   I kept the method as planned rather than re-tuning after seeing the test
+   result, because that would be leakage too. A better approach would choose the
+   threshold from out-of-fold predictions over more data, or pick the middle of
+   the flat region.
+3. **Model rankings are within noise.** With 75 test frauds, the bootstrap CIs
+   for all three supervised models overlap.
+4. **Unsupervised models found something but not much.** They beat random by a
+   wide margin, but they're a safety net for new patterns, not a replacement.
+
+Data notes: 284,807 rows, 492 fraud (0.173%), no missing values, file MD5
+`e90efcb83d69faf99fcab8b0255024de`. 1,081 rows are exact duplicates. They were
+kept. I checked: none of the 773 duplicate groups crosses the
+train/val/test boundary, so they don't leak between splits.
 
 ---
 
@@ -57,9 +93,14 @@ Normally you'd shout "fraud!" above 0.5. But think about money:
 - Missing a fraud = you lose the whole amount (could be $500).
 - A false alarm = someone spends a few minutes checking ($10).
 
-Missing fraud hurts much more, so the robot should shout **earlier**.
+So you'd think the robot should shout **earlier**. But surprise: in this
+data, about half the bad cookies are *tiny*. Stealing $4 costs less than the $10
+it takes to check it, so the cheapest plan actually shouts **a bit later**.
+
 We try every possible "shout line" on the tuning data, pick the cheapest
-one, and then check it on the final quiz.
+one, and then check it on the final quiz. And here's the honest part: the
+line we picked did **worse** on the final quiz. The tuning data had only 57
+bad cookies, which is too few to pick the line well. That's a lesson too.
 
 ### 🕵️ Spotting weird stuff nobody taught it (anomaly detection)
 Bad guys invent **new** tricks that nobody has labeled yet. So we also build two
